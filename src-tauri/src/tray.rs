@@ -1,9 +1,9 @@
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Manager};
 use crate::lifecycle::AppState;
 
-pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn create_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let open_i = MenuItem::with_id(app, "open", "Open ZyloFlow", true, None::<&str>)?;
     let start_dict_i = MenuItem::with_id(app, "start_dictation", "Start Dictation", true, None::<&str>)?;
     let pause_i = MenuItem::with_id(app, "pause", "Pause Application", true, None::<&str>)?;

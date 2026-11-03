@@ -79,7 +79,7 @@ impl SecureStorage {
         let entry_name = format!("api_key_{}", provider.to_lowercase());
 
         if let Ok(entry) = Entry::new(SERVICE_NAME, &entry_name) {
-            let _ = entry.delete_password();
+            let _ = entry.delete_credential();
         }
 
         let mut vault = Self::read_fallback_vault();
