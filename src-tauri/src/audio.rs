@@ -1,18 +1,20 @@
 use std::io::Cursor;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU16, AtomicU32, Ordering};
+use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::thread;
+use std::time::Instant;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{SampleFormat, Stream};
+use cpal::SampleFormat;
 use hound::{WavSpec, WavWriter};
 use crate::error::AppError;
 
 pub struct AudioRecorder {
     is_recording: Arc<AtomicBool>,
     audio_buffer: Arc<Mutex<Vec<f32>>>,
-    active_stream: Option<Stream>,
-    sample_rate: u32,
-    channels: u16,
+    stop_sender: Option<Sender<()>>,
+    sample_rate: Arc<AtomicU32>,
+    channels: Arc<AtomicU16>,
     start_time: Option<Instant>,
 }
 
@@ -21,9 +23,9 @@ impl AudioRecorder {
         Self {
             is_recording: Arc::new(AtomicBool::new(false)),
             audio_buffer: Arc::new(Mutex::new(Vec::new())),
-            active_stream: None,
-            sample_rate: 44100,
-            channels: 1,
+            stop_sender: None,
+            sample_rate: Arc::new(AtomicU32::new(44100)),
+            channels: Arc::new(AtomicU16::new(1)),
             start_time: None,
         }
     }
@@ -59,8 +61,11 @@ impl AudioRecorder {
             .default_input_config()
             .map_err(|e| AppError::Audio(format!("Failed to get input config: {}", e)))?;
 
-        self.sample_rate = config.sample_rate().0;
-        self.channels = config.channels();
+        let sample_rate_val = config.sample_rate().0;
+        let channels_val = config.channels();
+
+        self.sample_rate.store(sample_rate_val, Ordering::SeqCst);
+        self.channels.store(channels_val, Ordering::SeqCst);
 
         {
             let mut buf = self.audio_buffer.lock().unwrap();
@@ -71,61 +76,84 @@ impl AudioRecorder {
         let is_recording_flag = Arc::clone(&self.is_recording);
         is_recording_flag.store(true, Ordering::SeqCst);
 
-        let err_fn = |err| {
-            log::error!("Audio recording stream error: {}", err);
-        };
-
-        let stream = match config.sample_format() {
-            SampleFormat::F32 => device.build_input_stream(
-                &config.into(),
-                move |data: &[f32], _: &_| {
-                    if is_recording_flag.load(Ordering::SeqCst) {
-                        let mut buf = buffer_clone.lock().unwrap();
-                        buf.extend_from_slice(data);
-                    }
-                },
-                err_fn,
-                None,
-            ),
-            SampleFormat::I16 => device.build_input_stream(
-                &config.into(),
-                move |data: &[i16], _: &_| {
-                    if is_recording_flag.load(Ordering::SeqCst) {
-                        let mut buf = buffer_clone.lock().unwrap();
-                        for &sample in data {
-                            buf.push(sample as f32 / i16::MAX as f32);
-                        }
-                    }
-                },
-                err_fn,
-                None,
-            ),
-            SampleFormat::U16 => device.build_input_stream(
-                &config.into(),
-                move |data: &[u16], _: &_| {
-                    if is_recording_flag.load(Ordering::SeqCst) {
-                        let mut buf = buffer_clone.lock().unwrap();
-                        for &sample in data {
-                            buf.push((sample as f32 - 32768.0) / 32768.0);
-                        }
-                    }
-                },
-                err_fn,
-                None,
-            ),
-            _ => {
-                self.is_recording.store(false, Ordering::SeqCst);
-                return Err(AppError::Audio("Unsupported sample format".to_string()));
-            }
-        }
-        .map_err(|e| AppError::Audio(format!("Failed to build audio stream: {}", e)))?;
-
-        stream
-            .play()
-            .map_err(|e| AppError::Audio(format!("Failed to start audio playback/capture: {}", e)))?;
-
-        self.active_stream = Some(stream);
+        let (tx, rx) = channel::<()>();
+        self.stop_sender = Some(tx);
         self.start_time = Some(Instant::now());
+
+        // Spawn capture loop on a dedicated thread so Stream stays on that thread
+        thread::spawn(move || {
+            let err_fn = |err| {
+                log::error!("Audio stream error: {}", err);
+            };
+
+            let stream_res = match config.sample_format() {
+                SampleFormat::F32 => {
+                    let buf = Arc::clone(&buffer_clone);
+                    let flag = Arc::clone(&is_recording_flag);
+                    device.build_input_stream(
+                        &config.into(),
+                        move |data: &[f32], _: &_| {
+                            if flag.load(Ordering::SeqCst) {
+                                if let Ok(mut b) = buf.lock() {
+                                    b.extend_from_slice(data);
+                                }
+                            }
+                        },
+                        err_fn,
+                        None,
+                    )
+                }
+                SampleFormat::I16 => {
+                    let buf = Arc::clone(&buffer_clone);
+                    let flag = Arc::clone(&is_recording_flag);
+                    device.build_input_stream(
+                        &config.into(),
+                        move |data: &[i16], _: &_| {
+                            if flag.load(Ordering::SeqCst) {
+                                if let Ok(mut b) = buf.lock() {
+                                    for &s in data {
+                                        b.push(s as f32 / i16::MAX as f32);
+                                    }
+                                }
+                            }
+                        },
+                        err_fn,
+                        None,
+                    )
+                }
+                SampleFormat::U16 => {
+                    let buf = Arc::clone(&buffer_clone);
+                    let flag = Arc::clone(&is_recording_flag);
+                    device.build_input_stream(
+                        &config.into(),
+                        move |data: &[u16], _: &_| {
+                            if flag.load(Ordering::SeqCst) {
+                                if let Ok(mut b) = buf.lock() {
+                                    for &s in data {
+                                        b.push((s as f32 - 32768.0) / 32768.0);
+                                    }
+                                }
+                            }
+                        },
+                        err_fn,
+                        None,
+                    )
+                }
+                _ => {
+                    is_recording_flag.store(false, Ordering::SeqCst);
+                    return;
+                }
+            };
+
+            if let Ok(stream) = stream_res {
+                if stream.play().is_ok() {
+                    // Wait for stop signal
+                    let _ = rx.recv();
+                }
+                // Dropping stream releases mic
+            }
+            is_recording_flag.store(false, Ordering::SeqCst);
+        });
 
         Ok(())
     }
@@ -133,8 +161,9 @@ impl AudioRecorder {
     pub fn stop_recording(&mut self) -> Result<(Vec<u8>, f64), AppError> {
         self.is_recording.store(false, Ordering::SeqCst);
 
-        // Drop the stream to release microphone device immediately
-        self.active_stream.take();
+        if let Some(tx) = self.stop_sender.take() {
+            let _ = tx.send(());
+        }
 
         let duration_secs = self
             .start_time
@@ -149,45 +178,43 @@ impl AudioRecorder {
             samples
         };
 
-        // Minimum recording threshold check (300ms)
         if raw_samples.is_empty() || duration_secs < 0.3 {
             return Err(AppError::Audio(
                 "Recording was too short or empty".to_string(),
             ));
         }
 
-        // Convert audio to 16kHz mono WAV bytes (Whisper standard)
         let wav_bytes = self.create_whisper_wav(&raw_samples)?;
-
         Ok((wav_bytes, duration_secs))
     }
 
     pub fn cancel_recording(&mut self) {
         self.is_recording.store(false, Ordering::SeqCst);
-        self.active_stream.take();
+        if let Some(tx) = self.stop_sender.take() {
+            let _ = tx.send(());
+        }
         self.start_time = None;
         if let Ok(mut buf) = self.audio_buffer.lock() {
             buf.clear();
         }
     }
 
-    /// Resamples and encodes to 16kHz 16-bit mono WAV in memory
     fn create_whisper_wav(&self, samples: &[f32]) -> Result<Vec<u8>, AppError> {
         const TARGET_SAMPLE_RATE: u32 = 16000;
+        let channels = self.channels.load(Ordering::SeqCst);
+        let sample_rate = self.sample_rate.load(Ordering::SeqCst);
 
-        // Downmix multi-channel to mono if needed
-        let mono_samples: Vec<f32> = if self.channels > 1 {
+        let mono_samples: Vec<f32> = if channels > 1 {
             samples
-                .chunks_exact(self.channels as usize)
-                .map(|chunk| chunk.iter().sum::<f32>() / self.channels as f32)
+                .chunks_exact(channels as usize)
+                .map(|chunk| chunk.iter().sum::<f32>() / channels as f32)
                 .collect()
         } else {
             samples.to_vec()
         };
 
-        // Resample to 16000 Hz using linear interpolation
-        let resampled: Vec<f32> = if self.sample_rate != TARGET_SAMPLE_RATE && self.sample_rate > 0 {
-            let ratio = self.sample_rate as f64 / TARGET_SAMPLE_RATE as f64;
+        let resampled: Vec<f32> = if sample_rate != TARGET_SAMPLE_RATE && sample_rate > 0 {
+            let ratio = sample_rate as f64 / TARGET_SAMPLE_RATE as f64;
             let target_len = (mono_samples.len() as f64 / ratio) as usize;
             let mut output = Vec::with_capacity(target_len);
 
@@ -207,7 +234,6 @@ impl AudioRecorder {
             mono_samples
         };
 
-        // Encode to WAV using hound
         let spec = WavSpec {
             channels: 1,
             sample_rate: TARGET_SAMPLE_RATE,
@@ -221,7 +247,6 @@ impl AudioRecorder {
                 .map_err(|e| AppError::Audio(format!("Failed to create WAV writer: {}", e)))?;
 
             for &s in &resampled {
-                // Clamp sample to [-1.0, 1.0] and scale to i16
                 let clamped = s.clamp(-1.0, 1.0);
                 let sample_i16 = (clamped * 32767.0) as i16;
                 writer
@@ -237,4 +262,3 @@ impl AudioRecorder {
         Ok(cursor.into_inner())
     }
 }
-
