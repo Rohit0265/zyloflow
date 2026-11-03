@@ -54,7 +54,7 @@ impl AppState {
         let settings = SettingsManager::load_settings();
 
         // Check if transcription key exists
-        let stt_key = match SecureStorage::get_key(&settings.transcription_provider) {
+        let _stt_key = match SecureStorage::get_key(&settings.transcription_provider) {
             Ok(k) => k,
             Err(_) => {
                 let err_msg = format!(
