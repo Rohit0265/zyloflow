@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ZyloFlow",
+  "version": "0.1.0",
+  "identifier": "com.zyloflow.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "ZyloFlow",
+        "label": "main",
+        "width": 880,
+        "height": 640,
+        "minWidth": 600,
+        "minHeight": 480,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": true
+      },
+      {
+        "title": "ZyloFlow Dictation",
+        "label": "popup",
+        "url": "index.html?popup=true",
+        "width": 360,
+        "height": 72,
+        "resizable": false,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "transparent": true,
+        "visible": false,
+        "skipTaskbar": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Utility",
+    "shortDescription": "AI-Powered Voice-to-Text Desktop Application",
+    "longDescription": "ZyloFlow is a lightweight, premium-looking, AI-powered voice-to-text desktop application inspired by Wispr Flow."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default permissions for ZyloFlow windows",
+  "windows": ["main", "popup"],
+  "permissions": [
+    "core:default",
+    "global-shortcut:default",
+    "clipboard-manager:default",
+    "autostart:default"
+  ]
+}
