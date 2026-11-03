@@ -3,6 +3,7 @@ use reqwest::Client;
 use serde_json::{json, Value};
 use crate::error::AppError;
 
+#[allow(async_fn_in_trait)]
 pub trait RefinementProvider: Send + Sync {
     fn provider_name(&self) -> &'static str;
     async fn refine(

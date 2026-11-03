@@ -4,6 +4,7 @@ use reqwest::Client;
 use serde_json::Value;
 use crate::error::AppError;
 
+#[allow(async_fn_in_trait)]
 pub trait TranscriptionProvider: Send + Sync {
     fn provider_name(&self) -> &'static str;
     async fn transcribe(
