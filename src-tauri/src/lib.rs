@@ -8,6 +8,7 @@ pub mod refinement;
 pub mod secure_storage;
 pub mod settings;
 pub mod text_injection;
+pub mod transcription;
 pub mod tray;
 
 use tauri::{Manager, WindowEvent};
