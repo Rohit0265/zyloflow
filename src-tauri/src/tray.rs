@@ -88,3 +88,4 @@ pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
 
     Ok(())
 }
+

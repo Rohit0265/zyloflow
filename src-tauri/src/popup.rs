@@ -80,3 +80,4 @@ impl PopupManager {
         let _ = app.emit("dictation-state-changed", payload);
     }
 }
+

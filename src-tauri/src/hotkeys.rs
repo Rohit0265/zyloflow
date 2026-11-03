@@ -85,3 +85,4 @@ impl HotkeyManager {
         let _ = app.global_shortcut().unregister_all();
     }
 }
+

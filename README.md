@@ -162,3 +162,4 @@ sudo dpkg -i src-tauri/target/release/bundle/deb/zyloflow_0.1.0_amd64.deb
    - Gemini keys can be obtained from [Google AI Studio](https://aistudio.google.com).
 3. **Wayland Shortcut Restrictions**:
    - Some Wayland compositors (like GNOME Wayland) restrict global shortcut interception from sandboxed apps. ZyloFlow handles this natively; if your compositor blocks arbitrary global shortcuts, you can bind a system shortcut in GNOME Settings -> Keyboard to execute `zyloflow --dictate`.
+

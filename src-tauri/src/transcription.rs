@@ -269,3 +269,4 @@ pub async fn test_transcription_api(provider: &str, api_key: &str) -> Result<(),
         ))),
     }
 }
+

@@ -237,3 +237,4 @@ impl AudioRecorder {
         Ok(cursor.into_inner())
     }
 }
+

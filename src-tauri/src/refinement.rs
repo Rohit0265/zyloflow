@@ -321,3 +321,4 @@ pub async fn test_refinement_api(provider: &str, api_key: &str) -> Result<(), Ap
         _ => Err(AppError::Refinement(format!("Unknown provider: {}", provider))),
     }
 }
+
