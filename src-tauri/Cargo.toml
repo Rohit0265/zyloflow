@@ -1,0 +1,32 @@
+[package]
+name = "zyloflow"
+version = "0.1.0"
+description = "AI-Powered Voice-to-Text Desktop Application"
+authors = ["ZyloFlow Team"]
+edition = "2021"
+
+[lib]
+name = "zyloflow_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.2", features = [] }
+
+[dependencies]
+tauri = { version = "2.2", features = ["tray-icon", "image-png"] }
+tauri-plugin-global-shortcut = "2.2"
+tauri-plugin-clipboard-manager = "2.2"
+tauri-plugin-autostart = "2.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.41", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "multipart"] }
+cpal = "0.15"
+hound = "3.5"
+uuid = { version = "1.11", features = ["v4"] }
+keyring = { version = "3.6", default-features = false, features = ["linux-native"] }
+arboard = "3.4"
+chrono = "0.4"
+dirs = "5.0"
+log = "0.4"
+env_logger = "0.11"
