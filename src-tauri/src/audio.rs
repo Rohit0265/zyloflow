@@ -207,6 +207,29 @@ impl AudioRecorder {
         Ok(())
     }
 
+    pub fn extract_current_chunk(&mut self) -> Result<(Vec<u8>, f64), AppError> {
+        let duration_secs = self
+            .start_time
+            .map(|t| t.elapsed().as_secs_f64())
+            .unwrap_or(0.0);
+
+        let raw_samples = {
+            let mut buf = self.audio_buffer.lock().unwrap();
+            let samples = buf.clone();
+            buf.clear();
+            samples
+        };
+
+        if raw_samples.is_empty() || duration_secs < 0.4 {
+            return Err(AppError::Audio(
+                "Chunk is too short or empty".to_string(),
+            ));
+        }
+
+        let wav_bytes = self.create_whisper_wav(&raw_samples)?;
+        Ok((wav_bytes, duration_secs))
+    }
+
     pub fn stop_recording(&mut self) -> Result<(Vec<u8>, f64), AppError> {
         self.is_recording.store(false, Ordering::SeqCst);
 
