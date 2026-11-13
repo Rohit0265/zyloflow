@@ -92,19 +92,20 @@ export const FloatingPopup: React.FC = () => {
           {state === "listening" && (
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-white tracking-wide">
-                  Listening...
+                <span className="text-xs font-semibold text-emerald-400 tracking-wide flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Active
                 </span>
                 {/* Audio wave bars */}
                 <div className="flex items-center gap-0.5 h-3 ml-1">
-                  <span className="w-0.5 h-2 bg-red-400 rounded-full animate-wave-bar" style={{ animationDelay: "0ms" }} />
-                  <span className="w-0.5 h-3 bg-red-400 rounded-full animate-wave-bar" style={{ animationDelay: "150ms" }} />
-                  <span className="w-0.5 h-1.5 bg-red-400 rounded-full animate-wave-bar" style={{ animationDelay: "300ms" }} />
-                  <span className="w-0.5 h-3.5 bg-red-400 rounded-full animate-wave-bar" style={{ animationDelay: "450ms" }} />
+                  <span className="w-0.5 h-2 bg-emerald-400 rounded-full animate-wave-bar" style={{ animationDelay: "0ms" }} />
+                  <span className="w-0.5 h-3 bg-emerald-400 rounded-full animate-wave-bar" style={{ animationDelay: "150ms" }} />
+                  <span className="w-0.5 h-1.5 bg-emerald-400 rounded-full animate-wave-bar" style={{ animationDelay: "300ms" }} />
+                  <span className="w-0.5 h-3.5 bg-emerald-400 rounded-full animate-wave-bar" style={{ animationDelay: "450ms" }} />
                 </div>
               </div>
               <span className="text-[10px] text-zinc-400 truncate">
-                Speak now or press shortcut to stop
+                Listening... (auto-stops on silence)
               </span>
             </div>
           )}
