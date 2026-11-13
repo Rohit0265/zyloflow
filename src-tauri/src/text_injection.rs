@@ -1,6 +1,7 @@
 use std::process::Command;
 use std::time::Duration;
 use arboard::Clipboard;
+use enigo::{Direction, Enigo, Key, Keyboard as EnigoKeyboard, Settings};
 use crate::error::AppError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
