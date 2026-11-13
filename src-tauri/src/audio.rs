@@ -16,6 +16,7 @@ pub struct AudioRecorder {
     sample_rate: Arc<AtomicU32>,
     channels: Arc<AtomicU16>,
     start_time: Option<Instant>,
+    last_voice_time: Arc<Mutex<Instant>>,
 }
 
 impl AudioRecorder {
@@ -27,11 +28,16 @@ impl AudioRecorder {
             sample_rate: Arc::new(AtomicU32::new(44100)),
             channels: Arc::new(AtomicU16::new(1)),
             start_time: None,
+            last_voice_time: Arc::new(Mutex::new(Instant::now())),
         }
     }
 
     pub fn is_recording(&self) -> bool {
         self.is_recording.load(Ordering::SeqCst)
+    }
+
+    pub fn get_last_voice_time(&self) -> Instant {
+        *self.last_voice_time.lock().unwrap()
     }
 
     pub fn check_device_ready() -> Result<bool, AppError> {
@@ -74,6 +80,8 @@ impl AudioRecorder {
 
         let buffer_clone = Arc::clone(&self.audio_buffer);
         let is_recording_flag = Arc::clone(&self.is_recording);
+        let last_voice_clone = Arc::clone(&self.last_voice_time);
+        *self.last_voice_time.lock().unwrap() = Instant::now();
         is_recording_flag.store(true, Ordering::SeqCst);
 
         let (tx, rx) = channel::<()>();
@@ -90,10 +98,23 @@ impl AudioRecorder {
                 SampleFormat::F32 => {
                     let buf = Arc::clone(&buffer_clone);
                     let flag = Arc::clone(&is_recording_flag);
+                    let voice_time = Arc::clone(&last_voice_clone);
                     device.build_input_stream(
                         &config.into(),
                         move |data: &[f32], _: &_| {
                             if flag.load(Ordering::SeqCst) {
+                                let mut has_speech = false;
+                                for &s in data {
+                                    if s.abs() > 0.035 {
+                                        has_speech = true;
+                                        break;
+                                    }
+                                }
+                                if has_speech {
+                                    if let Ok(mut vt) = voice_time.lock() {
+                                        *vt = Instant::now();
+                                    }
+                                }
                                 if let Ok(mut b) = buf.lock() {
                                     b.extend_from_slice(data);
                                 }
@@ -106,10 +127,24 @@ impl AudioRecorder {
                 SampleFormat::I16 => {
                     let buf = Arc::clone(&buffer_clone);
                     let flag = Arc::clone(&is_recording_flag);
+                    let voice_time = Arc::clone(&last_voice_clone);
                     device.build_input_stream(
                         &config.into(),
                         move |data: &[i16], _: &_| {
                             if flag.load(Ordering::SeqCst) {
+                                let mut has_speech = false;
+                                for &s in data {
+                                    let sample_f = s as f32 / i16::MAX as f32;
+                                    if sample_f.abs() > 0.035 {
+                                        has_speech = true;
+                                        break;
+                                    }
+                                }
+                                if has_speech {
+                                    if let Ok(mut vt) = voice_time.lock() {
+                                        *vt = Instant::now();
+                                    }
+                                }
                                 if let Ok(mut b) = buf.lock() {
                                     for &s in data {
                                         b.push(s as f32 / i16::MAX as f32);
@@ -124,10 +159,24 @@ impl AudioRecorder {
                 SampleFormat::U16 => {
                     let buf = Arc::clone(&buffer_clone);
                     let flag = Arc::clone(&is_recording_flag);
+                    let voice_time = Arc::clone(&last_voice_clone);
                     device.build_input_stream(
                         &config.into(),
                         move |data: &[u16], _: &_| {
                             if flag.load(Ordering::SeqCst) {
+                                let mut has_speech = false;
+                                for &s in data {
+                                    let sample_f = (s as f32 - 32768.0) / 32768.0;
+                                    if sample_f.abs() > 0.035 {
+                                        has_speech = true;
+                                        break;
+                                    }
+                                }
+                                if has_speech {
+                                    if let Ok(mut vt) = voice_time.lock() {
+                                        *vt = Instant::now();
+                                    }
+                                }
                                 if let Ok(mut b) = buf.lock() {
                                     for &s in data {
                                         b.push((s as f32 - 32768.0) / 32768.0);
