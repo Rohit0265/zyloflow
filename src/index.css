@@ -36,6 +36,23 @@ body {
   overflow: hidden;
 }
 
+/* Custom select styling for consistent dark theme */
+select {
+  background-color: #09090b !important;
+  color: #f4f4f5 !important;
+}
+
+select option {
+  background-color: #18181b !important;
+  color: #f4f4f5 !important;
+  padding: 8px 12px;
+}
+
+select option:checked {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
 /* Custom sleek scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

@@ -12,6 +12,7 @@ import {
   KeyRound,
   Layers,
   Info,
+  ArrowLeft,
 } from "lucide-react";
 import { useAppStore } from "../stores/useAppStore";
 import {
@@ -34,6 +35,7 @@ export const SettingsPage: React.FC = () => {
     setSettingsSection,
     configuredKeys,
     refreshKeyStatuses,
+    setActiveTab,
   } = useAppStore();
 
   // Local state for keys input
@@ -200,6 +202,14 @@ export const SettingsPage: React.FC = () => {
     >
       {/* Sidebar Tabs */}
       <div className="w-full md:w-56 border-r border-zinc-800/80 bg-zinc-950/40 p-4 flex md:flex-col gap-1 shrink-0">
+        <button
+          onClick={() => setActiveTab("dashboard")}
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-zinc-300 hover:text-white bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 transition-colors mb-2"
+        >
+          <ArrowLeft className="w-4 h-4 text-indigo-400" />
+          <span>Back to Dashboard</span>
+        </button>
+
         <button
           onClick={() => setSettingsSection("ai")}
           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
