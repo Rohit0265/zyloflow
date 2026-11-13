@@ -105,6 +105,38 @@ impl AppState {
         }
 
         log::info!("Microphone recording started.");
+
+        // Spawn real-time audio watcher loop
+        // It continuously monitors voice activity:
+        // - If silence/no response persists for > 4.5 seconds, automatically turns off dictation feature
+        let app_handle = app.clone();
+        let audio_recorder = Arc::clone(&self.audio_recorder);
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(Duration::from_millis(500)).await;
+
+                let (is_rec, elapsed_silence) = {
+                    let rec = audio_recorder.lock().await;
+                    if !rec.is_recording() {
+                        break;
+                    }
+                    (rec.is_recording(), rec.get_last_voice_time().elapsed())
+                };
+
+                if !is_rec {
+                    break;
+                }
+
+                // If user hasn't spoken for 4.5 seconds, auto turn off dictation feature
+                if elapsed_silence > Duration::from_millis(4500) {
+                    log::info!("No voice response detected for 4.5s. Automatically stopping dictation feature.");
+                    let state = app_handle.state::<AppState>();
+                    let _ = state.stop_dictation(&app_handle).await;
+                    break;
+                }
+            }
+        });
+
         Ok(())
     }
 
