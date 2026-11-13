@@ -12,10 +12,7 @@ import {
   KeyRound,
   Layers,
   Info,
-<<<<<<< HEAD
   ArrowLeft,
-=======
->>>>>>> a40934d8418299c48f8d2ab6a4392f2321731f03
 } from "lucide-react";
 import { useAppStore } from "../stores/useAppStore";
 import {
