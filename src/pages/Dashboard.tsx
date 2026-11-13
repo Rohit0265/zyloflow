@@ -114,16 +114,12 @@ export const Dashboard: React.FC = () => {
               : "Ready to capture speech"}
           </h2>
 
-<<<<<<< HEAD
           {systemStatus.last_error && (
             <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
               <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
               <span>{systemStatus.last_error}</span>
             </div>
           )}
-
-=======
->>>>>>> a40934d8418299c48f8d2ab6a4392f2321731f03
           <p className="text-xs text-zinc-400 max-w-md">
             Press your global shortcut from any input field, browser, IDE, or terminal. Text will be cleaned and typed automatically.
           </p>
@@ -198,7 +194,6 @@ export const Dashboard: React.FC = () => {
 
       {/* Quick Settings & Info Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-<<<<<<< HEAD
         <div
           onClick={toggleDictation}
           className="rounded-xl bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800/80 p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
@@ -222,18 +217,6 @@ export const Dashboard: React.FC = () => {
           }`}>
             {isRecording ? "Active" : "Toggle"}
           </span>
-=======
-        <div className="rounded-xl bg-zinc-900/40 border border-zinc-800/80 p-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-zinc-800/80 flex items-center justify-center text-zinc-400">
-              <Mic className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-zinc-200">Microphone</p>
-              <p className="text-[11px] text-zinc-400">System Default Mic (Ready)</p>
-            </div>
-          </div>
->>>>>>> a40934d8418299c48f8d2ab6a4392f2321731f03
         </div>
 
         <div className="rounded-xl bg-zinc-900/40 border border-zinc-800/80 p-3.5 flex items-center justify-between">
