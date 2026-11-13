@@ -1,11 +1,8 @@
-<<<<<<< HEAD
-now listern my requirement , i want to do everything free , like using free api keys for fixing the transciption and using other api key for voice to text  i want to add this thing in my current project.
+# User Requirement
+now listen to my requirement: I want to do everything free, like using free API keys for fixing the transcription and using another free API key for voice to text. I want to add this in my current project.
 
+---
 
-
-
-<!-- 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 -->
-=======
 # Project: ZyloFlow — AI-Powered Voice-to-Text Desktop Application
 
 ## 1. Project Overview
