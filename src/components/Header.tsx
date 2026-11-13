@@ -56,6 +56,7 @@ export const Header: React.FC = () => {
       <div className="flex items-center gap-2">
         <button
           onClick={() => setActiveTab(activeTab === "settings" ? "dashboard" : "settings")}
+<<<<<<< HEAD
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
             activeTab === "settings"
               ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30"
@@ -65,6 +66,14 @@ export const Header: React.FC = () => {
         >
           <Settings className="w-3.5 h-3.5" />
           <span>{activeTab === "settings" ? "Back to Dashboard" : "Settings"}</span>
+=======
+          className={`p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/70 transition-colors ${
+            activeTab === "settings" ? "bg-zinc-800 text-white" : ""
+          }`}
+          title="Settings"
+        >
+          <Settings className="w-4 h-4" />
+>>>>>>> a40934d8418299c48f8d2ab6a4392f2321731f03
         </button>
 
         <div className="h-4 w-px bg-zinc-800 mx-1" />
