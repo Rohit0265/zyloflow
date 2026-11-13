@@ -162,7 +162,16 @@ impl TextInjector {
     }
 
     fn simulate_paste_x11() -> bool {
-        // 1. Try xdotool
+        // 1. Try native Enigo key emulation
+        if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
+            if enigo.key(Key::Control, Direction::Press).is_ok() {
+                let _ = enigo.key(Key::Unicode('v'), Direction::Click);
+                let _ = enigo.key(Key::Control, Direction::Release);
+                return true;
+            }
+        }
+
+        // 2. Try xdotool
         if let Ok(status) = Command::new("xdotool")
             .args(["key", "--clearmodifiers", "ctrl+v"])
             .status()
@@ -176,7 +185,16 @@ impl TextInjector {
     }
 
     fn simulate_paste_wayland() -> bool {
-        // 1. Try wtype
+        // 1. Try native Enigo key emulation
+        if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
+            if enigo.key(Key::Control, Direction::Press).is_ok() {
+                let _ = enigo.key(Key::Unicode('v'), Direction::Click);
+                let _ = enigo.key(Key::Control, Direction::Release);
+                return true;
+            }
+        }
+
+        // 2. Try wtype
         if let Ok(status) = Command::new("wtype")
             .args(["-M", "ctrl", "-k", "v", "-m", "ctrl"])
             .status()
@@ -186,7 +204,7 @@ impl TextInjector {
             }
         }
 
-        // 2. Try ydotool
+        // 3. Try ydotool
         if let Ok(status) = Command::new("ydotool")
             .args(["key", "29:1", "47:1", "47:0", "29:0"])
             .status()
@@ -200,6 +218,13 @@ impl TextInjector {
     }
 
     fn type_x11(text: &str) -> bool {
+        // 1. Try native Enigo text typing
+        if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
+            if enigo.text(text).is_ok() {
+                return true;
+            }
+        }
+
         if let Ok(status) = Command::new("xdotool")
             .args(["type", "--clearmodifiers", "--delay", "10", "--", text])
             .status()
@@ -210,6 +235,13 @@ impl TextInjector {
     }
 
     fn type_wayland(text: &str) -> bool {
+        // 1. Try native Enigo text typing
+        if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
+            if enigo.text(text).is_ok() {
+                return true;
+            }
+        }
+
         if let Ok(status) = Command::new("wtype")
             .args(["-d", "10", "--", text])
             .status()
