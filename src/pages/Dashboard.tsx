@@ -114,6 +114,13 @@ export const Dashboard: React.FC = () => {
               : "Ready to capture speech"}
           </h2>
 
+          {systemStatus.last_error && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+              <span>{systemStatus.last_error}</span>
+            </div>
+          )}
+
           <p className="text-xs text-zinc-400 max-w-md">
             Press your global shortcut from any input field, browser, IDE, or terminal. Text will be cleaned and typed automatically.
           </p>
@@ -188,16 +195,29 @@ export const Dashboard: React.FC = () => {
 
       {/* Quick Settings & Info Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="rounded-xl bg-zinc-900/40 border border-zinc-800/80 p-3.5 flex items-center justify-between">
+        <div
+          onClick={toggleDictation}
+          className="rounded-xl bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800/80 p-3.5 flex items-center justify-between cursor-pointer transition-colors group"
+          title="Click to toggle microphone dictation"
+        >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-zinc-800/80 flex items-center justify-center text-zinc-400">
-              <Mic className="w-4 h-4 text-emerald-400" />
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+              isRecording ? "bg-red-500/20 text-red-400" : "bg-zinc-800/80 text-emerald-400 group-hover:bg-indigo-600/20 group-hover:text-indigo-400"
+            }`}>
+              <Mic className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-semibold text-zinc-200">Microphone</p>
-              <p className="text-[11px] text-zinc-400">System Default Mic (Ready)</p>
+              <p className="text-[11px] text-zinc-400">
+                {isRecording ? "Listening... (Click to stop)" : "System Mic (Click to dictate)"}
+              </p>
             </div>
           </div>
+          <span className={`text-[11px] font-medium px-2 py-0.5 rounded ${
+            isRecording ? "bg-red-500/20 text-red-400 animate-pulse" : "bg-zinc-800 text-zinc-400 group-hover:text-indigo-300"
+          }`}>
+            {isRecording ? "Active" : "Toggle"}
+          </span>
         </div>
 
         <div className="rounded-xl bg-zinc-900/40 border border-zinc-800/80 p-3.5 flex items-center justify-between">
