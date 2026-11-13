@@ -1,4 +1,4 @@
-# ZyloFlow — AI-Powered Voice-to-Text Desktop Application
+d# ZyloFlow — AI-Powered Voice-to-Text Desktop Application
 
 ZyloFlow is a lightweight, premium-looking, AI-powered voice-to-text desktop application inspired by Wispr Flow, specifically engineered for the Linux desktop (Ubuntu X11 & Wayland).
 
